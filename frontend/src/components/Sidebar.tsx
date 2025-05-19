@@ -1,9 +1,22 @@
 import React from 'react';
-import { Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, useTheme, useMediaQuery } from '@mui/material';
+import { 
+  Drawer, 
+  List, 
+  ListItem, 
+  ListItemIcon, 
+  ListItemText, 
+  Divider, 
+  useTheme, 
+  useMediaQuery,
+  Box,
+  Typography,
+  ListItemButton,
+  styled
+} from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Dashboard as DashboardIcon,
-  ShowChart as ChartIcon,
+  ShowChart as ShowChartIcon,
   Timeline as TimelineIcon,
   Settings as SettingsIcon,
   AccountCircle as AccountIcon,
@@ -53,57 +66,60 @@ const Sidebar: React.FC<SidebarProps> = ({ mobileOpen, onClose }) => {
       <Divider />
       <List>
         {menuItems.map((item) => (
-          <ListItem
-            button
+          <ListItem 
             key={item.text}
-            onClick={() => handleNavigation(item.path)}
-            selected={location.pathname === item.path}
+            disablePadding
             sx={{
-              '&.Mui-selected': {
-                backgroundColor: theme.palette.action.selected,
-                '&:hover': {
-                  backgroundColor: theme.palette.action.selected,
-                },
-              },
-              borderRadius: 2,
               mx: 1,
               my: 0.5,
             }}
           >
-            <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.text} />
+            <ListItemButton
+              onClick={() => handleNavigation(item.path)}
+              selected={location.pathname === item.path}
+              sx={{
+                '&.Mui-selected': {
+                  backgroundColor: 'action.selected',
+                  '&:hover': {
+                    backgroundColor: 'action.selected',
+                  },
+                },
+                borderRadius: 2,
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
           </ListItem>
         ))}
       </List>
       <Divider sx={{ mt: 'auto' }} />
       <List>
-        <ListItem
-          button
-          onClick={() => handleNavigation('/profile')}
-          sx={{
-            borderRadius: 2,
-            mx: 1,
-            my: 0.5,
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <AccountIcon />
-          </ListItemIcon>
-          <ListItemText primary="Profile" />
+        <ListItem disablePadding sx={{ mx: 1, my: 0.5 }}>
+          <ListItemButton
+            onClick={() => handleNavigation('/profile')}
+            sx={{
+              borderRadius: 2,
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <AccountIcon />
+            </ListItemIcon>
+            <ListItemText primary="Profile" />
+          </ListItemButton>
         </ListItem>
-        <ListItem
-          button
-          onClick={handleLogout}
-          sx={{
-            borderRadius: 2,
-            mx: 1,
-            my: 0.5,
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40 }}>
-            <LogoutIcon />
-          </ListItemIcon>
-          <ListItemText primary="Logout" />
+        <ListItem disablePadding sx={{ mx: 1, my: 0.5 }}>
+          <ListItemButton
+            onClick={handleLogout}
+            sx={{
+              borderRadius: 2,
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40 }}>
+              <LogoutIcon />
+            </ListItemIcon>
+            <ListItemText primary="Logout" />
+          </ListItemButton>
         </ListItem>
       </List>
     </div>

@@ -12,9 +12,10 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.api.v1.api import api_router
+from app.api import api_router
 from app.core.config import settings
-from app.db.session import engine, Base, init_db
+from app.db.session import engine, Base
+from app.db.init_database import init_db
 from app.startup import create_start_app_handler, create_stop_app_handler
 
 # Configure logging

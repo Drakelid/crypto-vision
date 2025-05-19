@@ -1,0 +1,26 @@
+## Migrations
+
+This directory contains database migrations managed by Alembic.
+
+### Creating a new migration
+
+To create a new migration after making changes to your models:
+
+1. Make sure your models are up to date in `app/models/`
+2. Run: `alembic revision --autogenerate -m "Your migration message"`
+3. Review the generated migration file in `versions/`
+4. Apply the migration: `alembic upgrade head`
+
+### Common Commands
+
+- `alembic current` - Show current revision
+- `alembic history` - Show revision history
+- `alembic upgrade <revision>` - Upgrade to a specific revision
+- `alembic downgrade <revision>` - Downgrade to a specific revision
+- `alembic upgrade head` - Upgrade to the latest revision
+- `alembic downgrade base` - Downgrade all the way down
+
+### Environment
+
+Database connection settings are configured in `alembic.ini` under `sqlalchemy.url`.
+For development, this is set to connect to the PostgreSQL container.

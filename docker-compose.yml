@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  db:
+    image: timescale/timescaledb:latest-pg15
+    container_name: cryptovision-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cryptovision
+    command: ["postgres", "-c", "shared_preload_libraries=timescaledb"]
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d cryptovision"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cryptovision-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: cryptovision-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cryptovision-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cryptovision-backend
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      # Application
+      - ENVIRONMENT=development
+      - DEBUG=True
+      - HOST=0.0.0.0
+      - PORT=8000
+      
+      # Database
+      - POSTGRES_SERVER=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=cryptovision
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@db/cryptovision
+      - ALEMBIC_DATABASE_URI=postgresql+psycopg2://postgres:postgres@db/cryptovision
+      
+      # Redis
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      
+      # Security
+      - SECRET_KEY=your-secret-key-here
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=1440  # 24 hours
+      - REFRESH_TOKEN_EXPIRE_DAYS=30
+      - BACKEND_CORS_ORIGINS=["http://localhost:3000","http://localhost:8000"]
+      
+      # Email (configure these in production)
+      - SMTP_TLS=True
+      - SMTP_PORT=587
+      - SMTP_HOST=smtp.example.com
+      - SMTP_USER=your-email@example.com
+      - SMTP_PASSWORD=your-email-password
+      - EMAILS_FROM_EMAIL=no-reply@cryptovision.app
+      - EMAILS_FROM_NAME=CryptoVision
+      
+      # Logging
+      - LOG_LEVEL=INFO
+      
+      # Model settings
+      - MODEL_DIR=/app/models
+      - DEFAULT_MODEL_NAME=transformer
+      - DEFAULT_MODEL_VERSION=1.0.0
+      
+      # Timezone
+      - TIMEZONE=UTC
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/alembic.ini:/app/alembic.ini
+      - ./backend/wait_for_postgres.py:/app/wait_for_postgres.py
+    networks:
+      - cryptovision-network
+    command: >
+      bash -c "
+        echo 'Waiting for PostgreSQL to be ready...' &&
+        python wait_for_postgres.py &&
+        echo 'Running database migrations...' &&
+        alembic upgrade head &&
+        echo 'Starting application...' &&
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      "
+
+networks:
+  cryptovision-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

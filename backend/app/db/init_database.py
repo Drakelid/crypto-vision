@@ -2,11 +2,20 @@
 Initialize the database and apply migrations.
 """
 import logging
+import os
 import sys
 from typing import Optional
 
-from alembic import command
-from alembic.config import Config
+# Try to import Alembic, but don't fail if it's not available
+try:
+    from alembic import command
+    from alembic.config import Config
+    ALEMBIC_AVAILABLE = True
+except ImportError:
+    ALEMBIC_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("Alembic is not available. Falling back to direct table creation.")
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -21,20 +30,27 @@ logger = logging.getLogger(__name__)
 
 def run_migrations() -> None:
     """Run database migrations using Alembic."""
-    logger.info("Running database migrations...")
-    
-    # Get the directory where this script is located
-    import os
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Configure Alembic
-    alembic_cfg = Config(os.path.join(script_dir, "../../alembic.ini"))
-    alembic_cfg.set_main_option("script_location", os.path.join(script_dir, "../alembic"))
-    alembic_cfg.set_main_option("sqlalchemy.url", settings.SQLALCHEMY_DATABASE_URI)
-    
-    # Run migrations
-    command.upgrade(alembic_cfg, "head")
-    logger.info("Database migrations completed successfully")
+    if not ALEMBIC_AVAILABLE:
+        logger.warning("Alembic is not available. Skipping migrations.")
+        return
+        
+    try:
+        logger.info("Running database migrations...")
+        
+        # Get the directory where this script is located
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Configure Alembic
+        alembic_cfg = Config(os.path.join(script_dir, "../../alembic.ini"))
+        alembic_cfg.set_main_option("script_location", os.path.join(script_dir, "../alembic"))
+        alembic_cfg.set_main_option("sqlalchemy.url", settings.SQLALCHEMY_DATABASE_URI)
+        
+        # Run migrations
+        command.upgrade(alembic_cfg, "head")
+        logger.info("Database migrations completed successfully")
+    except Exception as e:
+        logger.error(f"Error running migrations: {e}")
+        raise
 
 def create_tables() -> None:
     """Create database tables directly using SQLAlchemy."""

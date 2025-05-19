@@ -131,6 +131,7 @@ async def custom_swagger_ui_html():
         oauth2_redirect_url=None,
         swagger_js_url="/static/swagger-ui-bundle.js",
         swagger_css_url="/static/swagger-ui.css",
+        swagger_ui_parameters={"syntaxHighlight.theme": "monokai"},
     )
 
 # Custom OpenAPI schema
@@ -146,7 +147,17 @@ def custom_openapi():
         version="1.0.0",
         description="CryptoVision Dashboard API - Real-time cryptocurrency price predictions and analytics",
         routes=app.routes,
+        openapi_version="3.0.0"
     )
+    
+    # Explicitly set the openapi version
+    openapi_schema["openapi"] = "3.0.0"
+    
+    # Add servers information
+    openapi_schema["servers"] = [{
+        "url": "http://localhost:8000",
+        "description": "Development server"
+    }]
     
     # Add security schemes
     openapi_schema["components"]["securitySchemes"] = {

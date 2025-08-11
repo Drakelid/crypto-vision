@@ -12,9 +12,9 @@ done
 
 echo "PostgreSQL is ready!"
 
-# Initialize the database
-echo "Initializing database..."
-python /app/init_db.py
+# Apply database migrations
+echo "Applying database migrations..."
+alembic upgrade head
 
 # Start the application
 echo "Starting application..."

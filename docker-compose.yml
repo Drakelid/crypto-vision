@@ -108,6 +108,23 @@ services:
       - cryptovision-network
     command: ["/app/init_script.sh"]
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cryptovision-frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - cryptovision-network
+
 networks:
   cryptovision-network:
     driver: bridge
